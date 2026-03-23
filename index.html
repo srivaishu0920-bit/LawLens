@@ -689,12 +689,6 @@
 </head>
 <body>
 
-<!-- EmailJS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  emailjs.init('NCDITZcRUA8LihH8X');
-</script>
-
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -1634,10 +1628,13 @@ function loadUserBookmarks(uid) {
 //  WELCOME EMAIL via EmailJS
 // ═══════════════════════════════════════════════════
 function sendWelcomeEmail(name, email) {
-  if (typeof emailjs === 'undefined') { return; }
-  emailjs.send('service_7z0kmcu', 'template_vwpvf2b', {
-    to_name:  name  || 'there',
-    to_email: email || ''
+  fetch('/api/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      template: 'welcome',
+      params: { to_name: name || 'there', to_email: email || '' }
+    })
   }).then(function() {
     console.log('Welcome email sent to', email);
   }).catch(function(e) {
@@ -1763,15 +1760,22 @@ function onBillStatusChanged(savedBill, newStatus, uid) {
 }
 
 function sendStatusChangeEmail(title, id, oldStatus, newStatus) {
-  if (typeof emailjs === 'undefined' || !currentUser || !currentUser.email) { return; }
-  emailjs.send('service_7z0kmcu', 'template_status_alert', {
-    to_name:    currentUser.displayName || 'LawLens User',
-    to_email:   currentUser.email,
-    bill_title: title,
-    bill_id:    id,
-    old_status: oldStatus,
-    new_status: newStatus,
-    message:    'A bill you saved on LawLens has changed status.\n\nBill: ' + title + ' (' + id + ')\nPrevious status: ' + oldStatus + '\nNew status: ' + newStatus + '\n\nLog in to LawLens to read the full update.'
+  if (!currentUser || !currentUser.email) { return; }
+  fetch('/api/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      template: 'status',
+      params: {
+        to_name:    currentUser.displayName || 'LawLens User',
+        to_email:   currentUser.email,
+        bill_title: title,
+        bill_id:    id,
+        old_status: oldStatus,
+        new_status: newStatus,
+        message:    'A bill you saved on LawLens has changed status.\n\nBill: ' + title + ' (' + id + ')\nPrevious status: ' + oldStatus + '\nNew status: ' + newStatus + '\n\nLog in to LawLens to read the full update.'
+      }
+    })
   }).catch(function(){});
 }
 
@@ -1820,9 +1824,8 @@ function showToast(msg) {
 
 
 // ═══════════════════════════════════════════════════
-var OPENSTATES_KEY = 'b31e0dbf-6599-4534-bfe3-69c06a557fdf';
-var CONGRESS_KEY   = 'Dfiq5zENfA4rxopBJVWcDd35CpS3vC1d6MBsb50v';
-var CIVIC_KEY      = 'AIzaSyDOddmqt8ZYkLDBI6o0bklziRYaPMmLUXo';
+// API keys are stored server-side in Vercel environment variables
+// ═══════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════
 //  STATE VARIABLES
@@ -1984,8 +1987,8 @@ function fetchHouseRep() {
 // ═══════════════════════════════════════════════════
 function fetchStateBills() {
   if (!stateAbbr) { return Promise.resolve(); }
-  var url = 'https://v3.openstates.org/bills?jurisdiction=' + stateAbbr.toLowerCase() + '&sort=updated_desc&per_page=30';
-  return fetch(url, { headers: { 'X-API-KEY': OPENSTATES_KEY } })
+  var url = '/api/openstates?state=' + stateAbbr.toLowerCase();
+  return fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var results = data.results || [];
@@ -2007,7 +2010,7 @@ function fetchStateBills() {
 //  CONGRESS.GOV API — federal bills
 // ═══════════════════════════════════════════════════
 function fetchFederalBills() {
-  var url = 'https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=30&api_key=' + CONGRESS_KEY;
+  var url = '/api/congress';
   return fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -2050,8 +2053,8 @@ function loadRealFedBills() {
 //  GOOGLE CIVIC API — officials + candidates
 // ═══════════════════════════════════════════════════
 function fetchCivicReps() {
-  var addr = encodeURIComponent(currentAddress || locLabel);
-  var url  = 'https://www.googleapis.com/civicinfo/v2/representatives?address=' + addr + '&key=' + CIVIC_KEY;
+  var addr = currentAddress || locLabel;
+  var url  = '/api/civic?address=' + encodeURIComponent(addr);
   return fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
@@ -2752,20 +2755,11 @@ function openAI(id, title, desc, source) {
   document.getElementById('aiRes').style.display   = 'none';
   document.getElementById('aiModal').classList.add('open');
 
-  // Try Anthropic API first
-  fetch('https://api.anthropic.com/v1/messages', {
-    method:  'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model:      'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system:     'You are a nonpartisan civic education assistant inside LawLens. Summarize legislation in clear, plain language for everyday citizens. No political slant. Format your response with these exact headers each on their own line:\nSummary:\nWho it affects:\nSupporters say:\nCritics say:\nCurrent status:\n\nKeep total response under 180 words.',
-      messages: [{ role: 'user', content: (source === 'federal' ? 'Federal' : 'State') + ' Bill: "' + title + '" (' + id + ')\n\nDetails: ' + desc + '\n\nPlease summarize.' }]
-    })
+  // Call AI summary via server-side proxy
+  fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source: source, title: title, id: id, desc: desc })
   })
   .then(function(r) {
     if (!r.ok) { throw new Error('API error ' + r.status); }
@@ -2793,7 +2787,7 @@ function buildLocalSummary(id, title, desc, source) {
     '\n\nSupporters say:\nProponents argue this bill addresses an important public need and would benefit constituents.' +
     '\n\nCritics say:\nOpponents may raise concerns about cost, implementation, or unintended consequences.' +
     '\n\nCurrent status:\n' + id + ' — ' + source.charAt(0).toUpperCase() + source.slice(1) + ' level legislation. Check congress.gov or your state legislature website for the latest status.' +
-    '\n\n\u2139\ufe0f Tip: For a full AI-generated summary, host LawLens on a web server (e.g. GitHub Pages or Netlify) where the Anthropic API can be called securely.';
+    '\n\n\u2139\ufe0f AI summary is temporarily unavailable. Please try again later.';
 }
 
 function showAIResult(text) {
