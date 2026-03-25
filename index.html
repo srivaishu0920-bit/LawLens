@@ -442,6 +442,57 @@
   .rep-desc { font-size:.74rem; color:var(--muted); margin:.4rem 0 .7rem; line-height:1.5; }
   body.dark .rep-desc { color:#A8A8C0; }
 
+  /* ═══ LIVE CAPITOL FEED ═══ */
+  .live-header{text-align:center;padding:1.2rem 0 .8rem;}
+  .live-pulse-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.3rem;}
+  .live-dot{width:10px;height:10px;background:#E53E3E;border-radius:50%;animation:livePulse 1.5s ease-in-out infinite;}
+  @keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(229,62,62,.5)}50%{box-shadow:0 0 0 8px rgba(229,62,62,0)}}
+  .live-label{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;letter-spacing:2px;color:var(--navy);}
+  body.dark .live-label{color:var(--gold);}
+  .live-sub{font-size:.76rem;color:var(--muted);margin-bottom:.8rem;}
+  .live-chamber-toggle{display:flex;gap:6px;justify-content:center;}
+  .live-ch-btn{padding:.4rem .9rem;border-radius:100px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;}
+  .live-ch-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  body.dark .live-ch-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+
+  .live-ticker-wrap{margin-top:1rem;}
+  .live-ticker{display:flex;flex-direction:column;gap:0;}
+  .live-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:3rem 1rem;color:var(--muted);font-size:.82rem;}
+  .live-spin{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--gold);animation:spin .7s linear infinite;}
+
+  .live-item{display:flex;gap:.7rem;padding:.85rem 1rem;border-left:3px solid transparent;background:var(--card);border-bottom:1px solid var(--border);transition:all .2s;animation:fadeIn .4s ease;}
+  .live-item:first-child{border-radius:10px 10px 0 0;}
+  .live-item:last-child{border-radius:0 0 10px 10px;border-bottom:none;}
+  .live-item:only-child{border-radius:10px;}
+  .live-item:hover{background:rgba(232,184,75,.04);}
+  .live-item.house{border-left-color:#3B82F6;}
+  .live-item.senate{border-left-color:#E53E3E;}
+  .live-item .live-time{min-width:52px;font-size:.65rem;color:var(--muted);font-weight:600;padding-top:2px;text-align:right;}
+  .live-item .live-body{flex:1;}
+  .live-item .live-chamber-tag{display:inline-block;font-size:.58rem;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:4px;margin-bottom:4px;text-transform:uppercase;}
+  .live-item.house .live-chamber-tag{background:rgba(59,130,246,.1);color:#3B82F6;}
+  .live-item.senate .live-chamber-tag{background:rgba(229,62,62,.1);color:#E53E3E;}
+  body.dark .live-item.house .live-chamber-tag{background:rgba(59,130,246,.15);color:#60A5FA;}
+  body.dark .live-item.senate .live-chamber-tag{background:rgba(229,62,62,.15);color:#FC8181;}
+  .live-item .live-text{font-size:.8rem;color:var(--text);line-height:1.5;}
+  .live-item .live-text strong{color:var(--navy);font-weight:600;}
+  body.dark .live-item .live-text strong{color:var(--gold);}
+  .live-item .live-type{font-size:.65rem;color:var(--muted);margin-top:3px;}
+  .live-item .live-type .live-type-icon{margin-right:3px;}
+
+  .live-vote-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:5px;background:var(--border);}
+  .live-vote-yea{background:#38A169;height:100%;}
+  .live-vote-nay{background:#E53E3E;height:100%;}
+  .live-vote-label{font-size:.6rem;color:var(--muted);margin-top:2px;display:flex;justify-content:space-between;}
+
+  .live-footer{display:flex;align-items:center;justify-content:space-between;padding:.7rem 0;margin-top:.5rem;font-size:.68rem;color:var(--muted);}
+  .live-refresh-btn{padding:.35rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.72rem;cursor:pointer;transition:all .2s;}
+  .live-refresh-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  .live-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+  .live-empty-icon{font-size:2rem;margin-bottom:.5rem;}
+  .live-empty-text{font-size:.82rem;}
+
   /* BILL CARD ACTIONS */
   .bill-actions { display:flex; align-items:center; gap:5px; }
   .bact-btn {
@@ -849,7 +900,7 @@
     <div class="nav-brand">Law<span>Lens</span></div>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="dark-toggle" id="darkBtn" onclick="toggleDark()">🌙 Dark</button>
-      <button class="notif-btn" id="notifBell" onclick="showNotifSettings()" title="Bill notifications">🔔</button>
+      <button class="notif-btn" id="notifBell" onclick="showNotifSettings()" title="Bill notifications" style="display:none;">🔔</button>
       <div class="nav-loc" onclick="goBack()">📍 <span id="navLoc">—</span></div>
       <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()" style="display:none;">
         <span id="userInitial">?</span>
@@ -868,7 +919,7 @@
     <div class="user-menu-item" onclick="switchTab('bookmarks', document.querySelector('[onclick*=bookmarks]'))">
       🔖 My Saved Bills
     </div>
-    <div class="user-menu-item" onclick="showNotifSettings()">
+    <div class="user-menu-item" id="menuNotifItem" onclick="showNotifSettings()" style="display:none;">
       🔔 Notification Settings
     </div>
     <div class="user-menu-item danger" onclick="signOutUser()">
@@ -880,6 +931,7 @@
     <button class="tab-btn" onclick="switchTab('candidates',this)"><span class="ti">🗳️</span>Candidates</button>
     <button class="tab-btn" onclick="switchTab('contact',this)"><span class="ti">📞</span>Contact</button>
     <button class="tab-btn" onclick="switchTab('bookmarks',this)"><span class="ti">🔖</span>Saved</button>
+    <button class="tab-btn" onclick="switchTab('livefeed',this)"><span class="ti">🔴</span>Live</button>
     <button class="tab-btn" onclick="switchTab('about',this)"><span class="ti">ℹ️</span>About</button>
   </div>
   <div class="content">
@@ -990,6 +1042,34 @@
     </div>
 
     <!-- ABOUT -->
+    <!-- LIVE CAPITOL FEED -->
+    <div id="tab-livefeed" class="tab-panel">
+      <div class="live-header">
+        <div class="live-pulse-row">
+          <span class="live-dot"></span>
+          <span class="live-label">LIVE CAPITOL FEED</span>
+        </div>
+        <p class="live-sub">Real-time floor activity from the U.S. House &amp; Senate</p>
+        <div class="live-chamber-toggle">
+          <button class="live-ch-btn active" id="liveBtnAll" onclick="filterLiveFeed('all')">All</button>
+          <button class="live-ch-btn" id="liveBtnHouse" onclick="filterLiveFeed('house')">🏛 House</button>
+          <button class="live-ch-btn" id="liveBtnSenate" onclick="filterLiveFeed('senate')">🏛 Senate</button>
+        </div>
+      </div>
+      <div class="live-ticker-wrap">
+        <div id="liveTicker" class="live-ticker">
+          <div class="live-loading">
+            <div class="live-spin"></div>
+            <span>Connecting to Capitol Hill...</span>
+          </div>
+        </div>
+      </div>
+      <div class="live-footer">
+        <span>Data from Congress.gov · Updates every 2 min</span>
+        <button class="live-refresh-btn" onclick="fetchLiveFeed()" title="Refresh now">↻ Refresh</button>
+      </div>
+    </div>
+
     <div id="tab-about" class="tab-panel">
 
       <!-- Hero -->
@@ -1500,6 +1580,11 @@ function updateNavUser(user) {
   document.getElementById('menuUserEmail').textContent = user.email || '';
   av.style.display = 'flex';
 
+  // Show notification bell and menu item only for signed-in (non-guest) users
+  var signedIn = !isGuest && user.email;
+  document.getElementById('notifBell').style.display = signedIn ? '' : 'none';
+  document.getElementById('menuNotifItem').style.display = signedIn ? '' : 'none';
+
   // Load registration count
   loadRegCount();
 }
@@ -1533,6 +1618,10 @@ document.addEventListener('click', function(e) {
 
 function showNotifSettings() {
   document.getElementById('userMenu').classList.remove('open');
+  if (isGuest || !currentUser || !currentUser.email) {
+    showToast('🔒 Sign in with email to enable bill notifications');
+    return;
+  }
   showToast('🔔 Notifications are on for all your saved bills');
 }
 
@@ -1704,14 +1793,14 @@ function removeBookmarkFromFirestore(uid, billId) {
 var notifications = []; // in-app notification list
 
 function startStatusChecker() {
-  if (!db || !currentUser) { return; }
+  if (!db || !currentUser || isGuest) { return; }
   // Check immediately on load, then every 5 minutes
   checkBillStatusChanges();
   setInterval(checkBillStatusChanges, 5 * 60 * 1000);
 }
 
 function checkBillStatusChanges() {
-  if (!db || !currentUser) { return; }
+  if (!db || !currentUser || isGuest) { return; }
   var uid = currentUser.uid;
   db.collection('users').doc(uid).collection('bookmarks')
     .where('notifyOnChange', '==', true)
@@ -1794,6 +1883,10 @@ function updateNotifBell() {
 
 function showNotifSettings() {
   document.getElementById('userMenu').classList.remove('open');
+  if (isGuest || !currentUser || !currentUser.email) {
+    showToast('🔒 Sign in with email to enable bill notifications');
+    return;
+  }
   if (notifications.length === 0) {
     showToast('🔔 No new bill updates. You\'ll be notified when saved bills change status.');
     return;
@@ -2810,6 +2903,163 @@ function closeModal(e) {
 }
 
 // ═══════════════════════════════════════════════════
+//  LIVE CAPITOL FEED
+// ═══════════════════════════════════════════════════
+var liveFeedData = [];
+var liveFeedFilter = 'all';
+var liveFeedLoaded = false;
+var liveFeedInterval = null;
+
+function fetchLiveFeed() {
+  var ticker = document.getElementById('liveTicker');
+  if (!liveFeedLoaded) {
+    ticker.innerHTML = '<div class="live-loading"><div class="live-spin"></div><span>Connecting to Capitol Hill...</span></div>';
+  }
+
+  // Fetch recent actions from Congress.gov via our proxy
+  var promises = [
+    fetch('/api/congress-floor?chamber=house').then(function(r) { return r.json(); }).catch(function() { return { floorActions: [] }; }),
+    fetch('/api/congress-floor?chamber=senate').then(function(r) { return r.json(); }).catch(function() { return { floorActions: [] }; })
+  ];
+
+  Promise.all(promises).then(function(results) {
+    var houseActions = (results[0].floorActions || []).map(function(a) { a._chamber = 'house'; return a; });
+    var senateActions = (results[1].floorActions || []).map(function(a) { a._chamber = 'senate'; return a; });
+    liveFeedData = houseActions.concat(senateActions);
+
+    // Sort by timestamp descending
+    liveFeedData.sort(function(a, b) {
+      return new Date(b.updateDate || b.actionDate || 0) - new Date(a.updateDate || a.actionDate || 0);
+    });
+
+    liveFeedLoaded = true;
+    renderLiveFeed();
+  }).catch(function() {
+    // Fallback: use recent bill actions as feed items
+    fetchLiveFeedFallback();
+  });
+}
+
+function fetchLiveFeedFallback() {
+  fetch('/api/congress').then(function(r) { return r.json(); }).then(function(data) {
+    var bills = data.bills || [];
+    liveFeedData = [];
+    bills.forEach(function(b) {
+      var chamber = 'house';
+      if (b.originChamber === 'Senate' || (b.number && b.number.toString().startsWith('s'))) chamber = 'senate';
+      liveFeedData.push({
+        _chamber: chamber,
+        description: (b.title || 'Untitled bill') + (b.latestAction ? ' — ' + b.latestAction.text : ''),
+        actionDate: b.latestAction ? b.latestAction.actionDate : b.updateDate,
+        updateDate: b.updateDate,
+        _type: b.latestAction ? detectActionType(b.latestAction.text || '') : 'update',
+        _billId: b.type + ' ' + b.number,
+        _billUrl: b.url || ''
+      });
+    });
+    liveFeedData.sort(function(a, b) {
+      return new Date(b.updateDate || b.actionDate || 0) - new Date(a.updateDate || a.actionDate || 0);
+    });
+    liveFeedLoaded = true;
+    renderLiveFeed();
+  }).catch(function() {
+    document.getElementById('liveTicker').innerHTML =
+      '<div class="live-empty"><div class="live-empty-icon">📡</div>' +
+      '<div class="live-empty-text">Unable to connect to Congress.gov right now.<br>Try refreshing in a moment.</div></div>';
+  });
+}
+
+function detectActionType(text) {
+  var t = text.toLowerCase();
+  if (t.indexOf('vote') !== -1 || t.indexOf('passed') !== -1 || t.indexOf('agreed') !== -1 || t.indexOf('failed') !== -1) return 'vote';
+  if (t.indexOf('introduced') !== -1 || t.indexOf('sponsor') !== -1) return 'intro';
+  if (t.indexOf('committee') !== -1 || t.indexOf('referred') !== -1 || t.indexOf('hearing') !== -1) return 'committee';
+  if (t.indexOf('amendment') !== -1) return 'amendment';
+  if (t.indexOf('signed') !== -1 || t.indexOf('president') !== -1 || t.indexOf('enacted') !== -1) return 'signed';
+  if (t.indexOf('debate') !== -1 || t.indexOf('floor') !== -1 || t.indexOf('motion') !== -1) return 'floor';
+  if (t.indexOf('cloture') !== -1 || t.indexOf('filibuster') !== -1) return 'cloture';
+  return 'update';
+}
+
+function getActionTypeLabel(type) {
+  var map = {
+    vote: { icon: '🗳️', label: 'Vote' },
+    intro: { icon: '📝', label: 'Introduced' },
+    committee: { icon: '🔬', label: 'Committee Action' },
+    amendment: { icon: '✏️', label: 'Amendment' },
+    signed: { icon: '✍️', label: 'Signed / Enacted' },
+    floor: { icon: '🗣️', label: 'Floor Action' },
+    cloture: { icon: '⚡', label: 'Cloture / Filibuster' },
+    update: { icon: '📋', label: 'Update' }
+  };
+  return map[type] || map.update;
+}
+
+function formatLiveTime(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  var now = new Date();
+  var diff = now - d;
+  var mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  var days = Math.floor(hrs / 24);
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return days + 'd ago';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function renderLiveFeed() {
+  var ticker = document.getElementById('liveTicker');
+  var filtered = liveFeedData;
+  if (liveFeedFilter !== 'all') {
+    filtered = liveFeedData.filter(function(a) { return a._chamber === liveFeedFilter; });
+  }
+
+  if (filtered.length === 0) {
+    ticker.innerHTML =
+      '<div class="live-empty"><div class="live-empty-icon">🏛️</div>' +
+      '<div class="live-empty-text">No ' + (liveFeedFilter === 'all' ? '' : liveFeedFilter + ' ') + 'floor activity right now.<br>Congress may not be in session.</div></div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(item) {
+    var chamber = item._chamber || 'house';
+    var desc = item.description || item.text || '';
+    var dateStr = item.actionDate || item.updateDate || '';
+    var type = item._type || detectActionType(desc);
+    var typeInfo = getActionTypeLabel(type);
+    var billId = item._billId || '';
+
+    // Make bill IDs bold
+    desc = desc.replace(/(H\.?\s?R\.?\s?\d+|S\.?\s?\d+|HR\s?\d+)/gi, '<strong>$1</strong>');
+    // Make quoted names bold
+    desc = desc.replace(/"([^"]+)"/g, '<strong>"$1"</strong>');
+
+    html += '<div class="live-item ' + chamber + '">' +
+      '<div class="live-time">' + formatLiveTime(dateStr) + '</div>' +
+      '<div class="live-body">' +
+        '<div class="live-chamber-tag">' + (chamber === 'house' ? '🏛 House' : '🏛 Senate') + '</div>' +
+        (billId ? '<div style="font-size:.65rem;color:var(--muted);margin-bottom:2px;font-weight:600;">' + esc(billId) + '</div>' : '') +
+        '<div class="live-text">' + desc + '</div>' +
+        '<div class="live-type"><span class="live-type-icon">' + typeInfo.icon + '</span>' + typeInfo.label + '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  ticker.innerHTML = html;
+}
+
+function filterLiveFeed(filter) {
+  liveFeedFilter = filter;
+  document.querySelectorAll('.live-ch-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('liveBtn' + filter.charAt(0).toUpperCase() + filter.slice(1)).classList.add('active');
+  renderLiveFeed();
+}
+
+// ═══════════════════════════════════════════════════
 //  TABS
 // ═══════════════════════════════════════════════════
 function switchTab(id, btn) {
@@ -2818,6 +3068,12 @@ function switchTab(id, btn) {
   btn.classList.add('active');
   document.getElementById('tab-' + id).classList.add('active');
   if (id === 'bookmarks') { renderBookmarks(); }
+  if (id === 'livefeed' && !liveFeedLoaded) {
+    fetchLiveFeed();
+    if (!liveFeedInterval) {
+      liveFeedInterval = setInterval(fetchLiveFeed, 2 * 60 * 1000); // refresh every 2 min
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════
