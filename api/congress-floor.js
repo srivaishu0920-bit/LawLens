@@ -1,79 +1,86 @@
 export default async function handler(req, res) {
   const chamber = req.query.chamber || 'house';
-  const today = new Date();
-  const dateStr = today.toISOString().split('T')[0];
-
-  // Try today first, then yesterday if no results
-  const dates = [dateStr];
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  dates.push(yesterday.toISOString().split('T')[0]);
-
-  // Also try the most recent weekdays (Congress doesn't usually meet on weekends)
-  for (let i = 2; i <= 5; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().split('T')[0]);
-  }
-
   let allActions = [];
 
-  for (const date of dates) {
-    if (allActions.length >= 30) break;
-    try {
-      const url = `https://api.congress.gov/v3/daily-congressional-record/${date}?api_key=${process.env.CONGRESS_API_KEY}`;
-      const resp = await fetch(url);
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.dailyCongressionalRecord) {
-          const sections = data.dailyCongressionalRecord;
-          // Extract items
-          if (Array.isArray(sections)) {
-            sections.forEach(s => {
-              if (s.fullIssue || s.articles) {
-                allActions.push({
-                  description: s.title || s.description || 'Congressional Record entry',
-                  actionDate: date,
-                  updateDate: date,
-                  _chamber: chamber
-                });
-              }
-            });
-          }
-        }
-      }
-    } catch (e) { /* continue */ }
+  // Fetch recent bills sorted by latest action — 50 per chamber gives a rich feed
+  const fetches = [];
 
-    // Also try the bill actions endpoint for recent activity
-    try {
-      const url = `https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=15&api_key=${process.env.CONGRESS_API_KEY}`;
-      const resp = await fetch(url);
-      if (resp.ok) {
-        const data = await resp.json();
-        const bills = data.bills || [];
-        bills.forEach(b => {
-          const bChamber = (b.originChamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';
-          if (chamber === bChamber || chamber === 'all') {
+  if (chamber === 'house' || chamber === 'all') {
+    fetches.push(
+      fetch(`https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=50&api_key=${process.env.CONGRESS_API_KEY}`)
+        .then(r => r.json())
+        .then(data => {
+          (data.bills || []).forEach(b => {
+            const bChamber = (b.originChamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';
+            if (chamber === 'all' || bChamber === chamber) {
+              allActions.push({
+                description: (b.title || '') + (b.latestAction ? ' — ' + b.latestAction.text : ''),
+                actionDate: b.latestAction ? b.latestAction.actionDate : b.updateDate,
+                updateDate: b.updateDate,
+                _chamber: bChamber,
+                _billId: (b.type || '') + ' ' + (b.number || ''),
+                _billUrl: b.url || ''
+              });
+            }
+          });
+        })
+        .catch(() => {})
+    );
+  }
+
+  // If filtering by senate, also make a senate-specific call
+  if (chamber === 'senate') {
+    fetches.push(
+      fetch(`https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=50&api_key=${process.env.CONGRESS_API_KEY}`)
+        .then(r => r.json())
+        .then(data => {
+          (data.bills || []).forEach(b => {
+            const bChamber = (b.originChamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';
+            if (bChamber === 'senate') {
+              allActions.push({
+                description: (b.title || '') + (b.latestAction ? ' — ' + b.latestAction.text : ''),
+                actionDate: b.latestAction ? b.latestAction.actionDate : b.updateDate,
+                updateDate: b.updateDate,
+                _chamber: 'senate',
+                _billId: (b.type || '') + ' ' + (b.number || ''),
+                _billUrl: b.url || ''
+              });
+            }
+          });
+        })
+        .catch(() => {})
+    );
+  }
+
+  // Also try to fetch amendment activity for extra richness
+  fetches.push(
+    fetch(`https://api.congress.gov/v3/amendment?sort=updateDate+desc&limit=20&api_key=${process.env.CONGRESS_API_KEY}`)
+      .then(r => r.json())
+      .then(data => {
+        (data.amendments || []).forEach(a => {
+          const aChamber = (a.chamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';
+          if (chamber === 'all' || aChamber === chamber) {
             allActions.push({
-              description: (b.title || '') + (b.latestAction ? ' — ' + b.latestAction.text : ''),
-              actionDate: b.latestAction ? b.latestAction.actionDate : b.updateDate,
-              updateDate: b.updateDate,
-              _chamber: bChamber,
-              _billId: (b.type || '') + ' ' + (b.number || ''),
-              _billUrl: b.url || ''
+              description: (a.description || a.purpose || 'Amendment') + (a.latestAction ? ' — ' + a.latestAction.text : ''),
+              actionDate: a.latestAction ? a.latestAction.actionDate : a.updateDate,
+              updateDate: a.updateDate,
+              _chamber: aChamber,
+              _billId: (a.type || 'AMDT') + ' ' + (a.number || ''),
+              _billUrl: a.url || '',
+              _type: 'amendment'
             });
           }
         });
-      }
-    } catch (e) { /* continue */ }
+      })
+      .catch(() => {})
+  );
 
-    break; // Only need one pass for bills
-  }
+  await Promise.all(fetches);
 
-  // Deduplicate by description
+  // Deduplicate by billId + description
   const seen = new Set();
   allActions = allActions.filter(a => {
-    const key = a.description;
+    const key = (a._billId || '') + '|' + a.description;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -82,5 +89,5 @@ export default async function handler(req, res) {
   // Sort by date descending
   allActions.sort((a, b) => new Date(b.updateDate || b.actionDate || 0) - new Date(a.updateDate || a.actionDate || 0));
 
-  res.status(200).json({ floorActions: allActions.slice(0, 30) });
+  res.status(200).json({ floorActions: allActions.slice(0, 50) });
 }

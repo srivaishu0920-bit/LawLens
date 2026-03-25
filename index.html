@@ -489,6 +489,12 @@
   .live-refresh-btn{padding:.35rem .7rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.72rem;cursor:pointer;transition:all .2s;}
   .live-refresh-btn:hover{border-color:var(--gold);color:var(--gold);}
 
+  .live-group-header{padding:.5rem 1rem;font-size:.68rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);background:rgba(232,184,75,.05);border-bottom:1px solid var(--border);border-top:1px solid var(--border);margin-top:0;}
+  .live-group-header:first-child{border-radius:10px 10px 0 0;margin-top:0;}
+  body.dark .live-group-header{background:rgba(232,184,75,.03);}
+
+  .live-summary{text-align:center;padding:.7rem 1rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border);margin-top:.3rem;}
+
   .live-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
   .live-empty-icon{font-size:2rem;margin-bottom:.5rem;}
   .live-empty-text{font-size:.82rem;}
@@ -3011,6 +3017,20 @@ function formatLiveTime(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function getTimeGroup(dateStr) {
+  if (!dateStr) return 'Earlier';
+  var d = new Date(dateStr);
+  var now = new Date();
+  var diff = now - d;
+  var hrs = diff / 3600000;
+  if (hrs < 1) return '🔴 In the Last Hour';
+  if (hrs < 3) return '🟡 Last 2–3 Hours';
+  if (hrs < 6) return 'Earlier Today';
+  if (hrs < 24) return 'Today';
+  if (hrs < 48) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
 function renderLiveFeed() {
   var ticker = document.getElementById('liveTicker');
   var filtered = liveFeedData;
@@ -3026,13 +3046,21 @@ function renderLiveFeed() {
   }
 
   var html = '';
-  filtered.forEach(function(item) {
+  var lastGroup = '';
+  filtered.forEach(function(item, idx) {
     var chamber = item._chamber || 'house';
     var desc = item.description || item.text || '';
     var dateStr = item.actionDate || item.updateDate || '';
     var type = item._type || detectActionType(desc);
     var typeInfo = getActionTypeLabel(type);
     var billId = item._billId || '';
+    var group = getTimeGroup(dateStr);
+
+    // Insert time group header
+    if (group !== lastGroup) {
+      lastGroup = group;
+      html += '<div class="live-group-header">' + group + '</div>';
+    }
 
     // Make bill IDs bold
     desc = desc.replace(/(H\.?\s?R\.?\s?\d+|S\.?\s?\d+|HR\s?\d+)/gi, '<strong>$1</strong>');
@@ -3049,6 +3077,15 @@ function renderLiveFeed() {
       '</div>' +
     '</div>';
   });
+
+  // Add count summary at bottom
+  var houseCount = filtered.filter(function(a) { return a._chamber === 'house'; }).length;
+  var senateCount = filtered.filter(function(a) { return a._chamber === 'senate'; }).length;
+  html += '<div class="live-summary">' +
+    '📊 Showing <strong>' + filtered.length + '</strong> actions' +
+    (liveFeedFilter === 'all' ? ' — <span style="color:#3B82F6;">' + houseCount + ' House</span> · <span style="color:#E53E3E;">' + senateCount + ' Senate</span>' : '') +
+    '</div>';
+
   ticker.innerHTML = html;
 }
 
