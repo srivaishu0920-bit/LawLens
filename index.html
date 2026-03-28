@@ -781,18 +781,10 @@
 
       <div class="auth-switch">
         <span id="authSwitchText">Don't have an account?</span>
-        <button onclick="toggleAuthMode()">Sign Up</button>
+        <button id="authSwitchLink" onclick="toggleAuthMode()">Sign Up</button>
       </div>
     </div>
 
-    <!-- Guest option -->
-    <div class="guest-divider">or</div>
-    <button class="auth-btn secondary" onclick="continueAsGuest()">
-      Continue as Guest
-    </button>
-    <p style="font-size:.71rem;color:rgba(255,255,255,.25);margin-top:.6rem;">
-      Guests can browse bills but won't receive status notifications
-    </p>
   </div>
 </div>
 
@@ -1082,7 +1074,7 @@
       <div class="about-hero">
         <h2>About LawLens</h2>
         <p>Real bills. Real reps. No spin. LawLens was built to close the civic engagement gap — making government transparent and accessible for everyone, everywhere.</p>
-        <div class="creator">🎓 Built by Vaishnavi Tummalapalli · Apex High School · RTX Internship 2026</div>
+        <div class="creator">🎓 Built by Vaishnavi Tummalapalli · Apex High School</div>
         <div style="margin-top:.6rem;font-size:.72rem;color:rgba(255,255,255,.35);">👁 <span id="stat-visitors">—</span> visits</div>
       </div>
 
@@ -1450,6 +1442,7 @@ function toggleAuthMode() {
   document.getElementById('authSubtitle').textContent = isSignUp ? 'Sign up to save bills and get alerts.' : 'Sign in to save bills and get status alerts.';
   document.getElementById('authMainBtn').textContent  = isSignUp ? 'Create Account' : 'Sign In';
   document.getElementById('authSwitchText').textContent = isSignUp ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('authSwitchLink').textContent = isSignUp ? 'Sign In' : 'Sign Up';
   document.getElementById('authName').style.display   = isSignUp ? 'block' : 'none';
   document.getElementById('authError').style.display  = 'none';
 }
@@ -1535,7 +1528,10 @@ function signInWithGoogle() {
         goToWelcome();
       }
     })
-    .catch(function(e) { showAuthError(friendlyAuthError(e.code)); });
+    .catch(function(e) {
+      console.error('Google sign-in error:', e.code, e.message);
+      showAuthError(friendlyAuthError(e.code));
+    });
 }
 
 function continueAsGuest() {
@@ -1760,19 +1756,26 @@ function trackPageVisit() {
   var visitsRef = db.collection('stats').doc('pageVisits');
   var todayKey = 'll_visited_' + new Date().toISOString().slice(0, 10);
   var alreadyCounted = localStorage.getItem(todayKey);
+
+  function displayCount() {
+    visitsRef.get().then(function(doc) {
+      var count = doc.exists ? (doc.data().count || 0) : 0;
+      var el = document.getElementById('stat-visitors');
+      if (el) { el.textContent = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : count; }
+    }).catch(function(){});
+  }
+
   if (!alreadyCounted) {
     visitsRef.set(
       { count: firebase.firestore.FieldValue.increment(1) },
       { merge: true }
     ).then(function() {
       localStorage.setItem(todayKey, '1');
-    }).catch(function(){});
+      displayCount();
+    }).catch(function(){ displayCount(); });
+  } else {
+    displayCount();
   }
-  visitsRef.get().then(function(doc) {
-    var count = doc.exists ? (doc.data().count || 0) : 0;
-    var el = document.getElementById('stat-visitors');
-    if (el) { el.textContent = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : count; }
-  }).catch(function(){});
 }
 
 function saveBookmarkToFirestore(uid, bill) {
