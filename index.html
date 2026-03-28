@@ -783,6 +783,9 @@
         <span id="authSwitchText">Don't have an account?</span>
         <button id="authSwitchLink" onclick="toggleAuthMode()">Sign Up</button>
       </div>
+
+      <div class="guest-divider">or</div>
+      <button class="auth-btn" style="background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);" onclick="continueAsGuest()">Continue as Guest</button>
     </div>
 
   </div>
@@ -1754,28 +1757,17 @@ function incrementRegistrationCount() {
 function trackPageVisit() {
   if (!db) { return; }
   var visitsRef = db.collection('stats').doc('pageVisits');
-  var todayKey = 'll_visited_' + new Date().toISOString().slice(0, 10);
-  var alreadyCounted = localStorage.getItem(todayKey);
 
-  function displayCount() {
+  visitsRef.set(
+    { count: firebase.firestore.FieldValue.increment(1) },
+    { merge: true }
+  ).then(function() {
     visitsRef.get().then(function(doc) {
       var count = doc.exists ? (doc.data().count || 0) : 0;
       var el = document.getElementById('stat-visitors');
       if (el) { el.textContent = count >= 1000 ? (count / 1000).toFixed(1) + 'k' : count; }
     }).catch(function(){});
-  }
-
-  if (!alreadyCounted) {
-    visitsRef.set(
-      { count: firebase.firestore.FieldValue.increment(1) },
-      { merge: true }
-    ).then(function() {
-      localStorage.setItem(todayKey, '1');
-      displayCount();
-    }).catch(function(){ displayCount(); });
-  } else {
-    displayCount();
-  }
+  }).catch(function(){});
 }
 
 function saveBookmarkToFirestore(uid, bill) {
