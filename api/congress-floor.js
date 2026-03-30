@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (chamber === 'house' || chamber === 'all') {
     fetches.push(
       fetch(`https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=50&api_key=${process.env.CONGRESS_API_KEY}`)
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(data => {
           (data.bills || []).forEach(b => {
             const bChamber = (b.originChamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   if (chamber === 'senate') {
     fetches.push(
       fetch(`https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=50&api_key=${process.env.CONGRESS_API_KEY}`)
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(data => {
           (data.bills || []).forEach(b => {
             const bChamber = (b.originChamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
   // Also try to fetch amendment activity for extra richness
   fetches.push(
     fetch(`https://api.congress.gov/v3/amendment?sort=updateDate+desc&limit=20&api_key=${process.env.CONGRESS_API_KEY}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(data => {
         (data.amendments || []).forEach(a => {
           const aChamber = (a.chamber || '').toLowerCase() === 'senate' ? 'senate' : 'house';

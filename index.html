@@ -2083,9 +2083,13 @@ function fetchStateBills() {
   if (!stateAbbr) { return Promise.resolve(); }
   var url = '/api/openstates?state=' + stateAbbr.toLowerCase();
   return fetch(url)
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if (!r.ok) throw new Error('OpenStates API error ' + r.status);
+      return r.json();
+    })
     .then(function(data) {
       var results = data.results || [];
+      if (data.error) throw new Error(data.error);
       stateBills = results.map(function(b) {
         return {
           id:     b.identifier,
@@ -2097,28 +2101,55 @@ function fetchStateBills() {
           url:    b.openstates_url || ''
         };
       });
+    })
+    .catch(function() {
+      loadDemoStateBills();
     });
 }
 
 // ═══════════════════════════════════════════════════
 //  CONGRESS.GOV API — federal bills
 // ═══════════════════════════════════════════════════
+function buildCongressUrl(b) {
+  var congress = b.congress || '';
+  var chamber = (b.originChamber || '').toLowerCase();
+  var num = b.number || '';
+  var type = (b.type || '').toLowerCase();
+  // Congress.gov uses specific path segments per bill type
+  var typeMap = { hr: 'house-bill', s: 'senate-bill', hres: 'house-resolution', sres: 'senate-resolution',
+    hjres: 'house-joint-resolution', sjres: 'senate-joint-resolution', hconres: 'house-concurrent-resolution', sconres: 'senate-concurrent-resolution' };
+  var segment = typeMap[type] || (chamber === 'senate' ? 'senate-bill' : 'house-bill');
+  return 'https://www.congress.gov/bill/' + congress + 'th-congress/' + segment + '/' + num;
+}
+
 function fetchFederalBills() {
   var url = '/api/congress';
   return fetch(url)
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Congress API error ' + r.status);
+      return r.json();
+    })
     .then(function(data) {
       var bills = data.bills || [];
-      if (!bills.length) { throw new Error('No bills'); }
+      if (data.error || !bills.length) { throw new Error('No bills'); }
       fedBills = bills.map(function(b) {
+        var id = ((b.type || '') + ' ' + (b.number || '')).trim();
+        var title = b.title || 'Untitled Bill';
+        var status = (b.latestAction && b.latestAction.text) ? b.latestAction.text : 'Active';
+        // Build a meaningful description from title + latest action
+        var desc = title;
+        if (b.latestAction && b.latestAction.text) {
+          desc = title + ' — Status: ' + b.latestAction.text;
+          if (b.latestAction.actionDate) desc += ' (' + b.latestAction.actionDate + ')';
+        }
         return {
-          id:     (b.type || '') + ' ' + (b.number || ''),
-          title:  b.title || 'Untitled Bill',
-          desc:   b.title || 'Untitled Bill',
-          cat:    categorizeBill([], b.title || ''),
-          status: (b.latestAction && b.latestAction.text) ? b.latestAction.text : 'Active',
+          id:     id,
+          title:  title,
+          desc:   desc,
+          cat:    categorizeBill([], title),
+          status: status,
           source: 'federal',
-          url:    'https://www.congress.gov/bill/' + (b.congress || '') + 'th-congress/' + ((b.originChamber || '').toLowerCase()) + '-bill/' + (b.number || '')
+          url:    buildCongressUrl(b)
         };
       });
     })
@@ -2150,7 +2181,10 @@ function fetchCivicReps() {
   var addr = currentAddress || locLabel;
   var url  = '/api/civic?address=' + encodeURIComponent(addr);
   return fetch(url)
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Civic API error ' + r.status);
+      return r.json();
+    })
     .then(function(data) {
       if (data.error) {
         console.warn('Civic API error:', data.error.message);
@@ -2385,13 +2419,8 @@ function loadDemoStateBills() {
 }
 
 function loadDemoFedBills() {
-  fedBills = [
-    { id:'HR 1234', title:'Inflation Reduction and Healthcare Access Act', desc:'Extends Medicare drug price negotiation provisions, caps insulin costs at $35/month, and funds green energy manufacturing tax credits.', cat:'health', status:'Passed House', source:'federal', url:'https://congress.gov' },
-    { id:'S 892',   title:'CHIPS and Science Reauthorization Act', desc:'Provides $52B in subsidies for domestic semiconductor manufacturing and increases NSF research funding through 2030.', cat:'other', status:'In Senate Committee', source:'federal', url:'https://congress.gov' },
-    { id:'HR 3311', title:'Student Loan Refinancing and Forgiveness Act', desc:'Allows federal student loan refinancing at current rates and provides targeted forgiveness for public service workers.', cat:'edu', status:'Referred to Committee', source:'federal', url:'https://congress.gov' },
-    { id:'S 445',   title:'Clean Energy Tax Credit Extension Act', desc:'Extends production tax credits for wind, solar, and battery storage projects through 2035.', cat:'env', status:'Floor Vote Pending', source:'federal', url:'https://congress.gov' },
-    { id:'HR 2090', title:'Rural Hospital Stabilization Act', desc:'Provides emergency grants and Medicare payment boosts to rural hospitals at risk of closure nationwide.', cat:'health', status:'Active', source:'federal', url:'https://congress.gov' }
-  ];
+  // Use the same real bills as loadRealFedBills — never show fabricated data
+  loadRealFedBills();
 }
 
 function loadDemoOfficials() {
@@ -2414,11 +2443,11 @@ function loadDemoCandidates() {
 // ═══════════════════════════════════════════════════
 function categorizeBill(subjects, title) {
   var s = (subjects.join(' ') + ' ' + title).toLowerCase();
-  if (/school|education|student|teacher|university|college|literacy/.test(s)) { return 'edu'; }
-  if (/health|hospital|medicaid|medicare|drug|clinic|mental|opioid|insurance/.test(s)) { return 'health'; }
-  if (/tax|revenue|budget|appropriat|fiscal|fund|spend/.test(s)) { return 'tax'; }
-  if (/environment|climate|air|water|energy|carbon|emission|wildlife|forest/.test(s)) { return 'env'; }
-  if (/housing|zoning|rent|affordable|mortgage|home/.test(s)) { return 'hse'; }
+  if (/school|education|student|teacher|university|college|literacy|fafsa|pell grant|tuition/.test(s)) { return 'edu'; }
+  if (/health|hospital|medicaid|medicare|drug|clinic|mental|opioid|insurance|pharma|prescription|vaccine|nursing/.test(s)) { return 'health'; }
+  if (/\btax\b|revenue|budget|appropriat|fiscal|fund\b|spend|debt ceiling|reconciliation|irs|tariff|deficit/.test(s)) { return 'tax'; }
+  if (/environment|climate|air quality|water quality|energy|carbon|emission|wildlife|forest|epa|clean|solar|wind|conservation|pollution/.test(s)) { return 'env'; }
+  if (/housing|zoning|rent\b|affordable hom|mortgage|homelessness|hud\b|tenant/.test(s)) { return 'hse'; }
   return 'other';
 }
 
@@ -2942,7 +2971,10 @@ function fetchLiveFeed() {
 }
 
 function fetchLiveFeedFallback() {
-  fetch('/api/congress').then(function(r) { return r.json(); }).then(function(data) {
+  fetch('/api/congress').then(function(r) {
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  }).then(function(data) {
     var bills = data.bills || [];
     liveFeedData = [];
     bills.forEach(function(b) {
