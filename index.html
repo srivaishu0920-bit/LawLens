@@ -1971,26 +1971,45 @@ function useGPS() {
 }
 
 function reverseGeocode(lat, lng) {
-  var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en';
-  fetch(url)
-    .then(function(r) { return r.json(); })
+  // Use Google Geocoding for accurate city names, fall back to BigDataCloud
+  var gUrl = '/api/reverse-geocode?lat=' + lat + '&lng=' + lng;
+  fetch(gUrl)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Reverse geocode error');
+      return r.json();
+    })
     .then(function(data) {
-      var city  = data.city || data.locality || data.principalSubdivision || '';
-      var code  = data.principalSubdivisionCode || '';
-      var abbr  = code.replace('US-', '');
-      var zip   = data.postcode || '';
-      currentAddress = zip || (lat.toFixed(4) + ',' + lng.toFixed(4));
-      locLabel  = city ? (city + ', ' + abbr) : (zip || 'Your Location');
-      stateAbbr = abbr;
-      stateFull = data.principalSubdivision || abbr;
+      if (data.error) throw new Error(data.error);
+      currentAddress = data.zip || (lat.toFixed(4) + ',' + lng.toFixed(4));
+      locLabel  = (data.city || 'Your Location') + (data.stateAbbr ? ', ' + data.stateAbbr : '');
+      stateAbbr = data.stateAbbr || '';
+      stateFull = data.stateFull || '';
       hideGPSMsg();
       loadAllData();
     })
     .catch(function() {
-      currentAddress = lat.toFixed(4) + ',' + lng.toFixed(4);
-      locLabel  = 'Your Location';
-      hideGPSMsg();
-      loadAllData();
+      // Fallback to BigDataCloud
+      var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en';
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var city  = data.city || data.locality || data.principalSubdivision || '';
+          var code  = data.principalSubdivisionCode || '';
+          var abbr  = code.replace('US-', '');
+          var zip   = data.postcode || '';
+          currentAddress = zip || (lat.toFixed(4) + ',' + lng.toFixed(4));
+          locLabel  = city ? (city + ', ' + abbr) : (zip || 'Your Location');
+          stateAbbr = abbr;
+          stateFull = data.principalSubdivision || abbr;
+          hideGPSMsg();
+          loadAllData();
+        })
+        .catch(function() {
+          currentAddress = lat.toFixed(4) + ',' + lng.toFixed(4);
+          locLabel  = 'Your Location';
+          hideGPSMsg();
+          loadAllData();
+        });
     });
 }
 
@@ -2005,23 +2024,39 @@ function submitZip() {
   }
   currentAddress = z;
   showLoading();
-  fetch('https://api.zippopotam.us/us/' + z)
+  // Use Google Geocoding for accurate city names, fall back to Zippopotam.us
+  fetch('/api/geocode?zip=' + z)
     .then(function(r) {
-      if (!r.ok) { throw new Error('ZIP not found'); }
+      if (!r.ok) throw new Error('Geocode error');
       return r.json();
     })
     .then(function(data) {
-      var place = data.places[0];
-      locLabel  = place['place name'] + ', ' + place['state abbreviation'];
-      stateAbbr = place['state abbreviation'];
-      stateFull = place['state'];
+      if (data.error) throw new Error(data.error);
+      locLabel  = (data.city || 'ZIP ' + z) + (data.stateAbbr ? ', ' + data.stateAbbr : '');
+      stateAbbr = data.stateAbbr || '';
+      stateFull = data.stateFull || '';
       loadAllData();
     })
     .catch(function() {
-      locLabel  = 'ZIP ' + z;
-      stateAbbr = '';
-      stateFull = '';
-      loadAllData();
+      // Fallback to Zippopotam.us
+      fetch('https://api.zippopotam.us/us/' + z)
+        .then(function(r) {
+          if (!r.ok) throw new Error('ZIP not found');
+          return r.json();
+        })
+        .then(function(data) {
+          var place = data.places[0];
+          locLabel  = place['place name'] + ', ' + place['state abbreviation'];
+          stateAbbr = place['state abbreviation'];
+          stateFull = place['state'];
+          loadAllData();
+        })
+        .catch(function() {
+          locLabel  = 'ZIP ' + z;
+          stateAbbr = '';
+          stateFull = '';
+          loadAllData();
+        });
     });
 }
 
