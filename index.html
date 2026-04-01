@@ -1971,22 +1971,49 @@ function useGPS() {
 }
 
 function reverseGeocode(lat, lng) {
-  // Use BigDataCloud for initial state/ZIP, then Civic API corrects the city in loadAllData
+  // Use BigDataCloud to get ZIP, then look up the accurate USPS city name via our geocode endpoint
   var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en';
   fetch(url)
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      var city  = data.city || data.locality || data.principalSubdivision || '';
       var code  = data.principalSubdivisionCode || '';
       var abbr  = code.replace('US-', '');
       var zip   = data.postcode || '';
       currentAddress = zip || (lat.toFixed(4) + ',' + lng.toFixed(4));
-      // Set temporary label — Civic API will correct the city name in fetchCivicReps
-      locLabel  = city ? (city + ', ' + abbr) : (zip || 'Your Location');
       stateAbbr = abbr;
       stateFull = data.principalSubdivision || abbr;
-      hideGPSMsg();
-      loadAllData();
+
+      // If we got a ZIP, look up the accurate USPS city name
+      if (zip && /^\d{5}$/.test(zip)) {
+        fetch('/api/geocode?zip=' + zip)
+          .then(function(r2) {
+            if (!r2.ok) throw new Error('Geocode error');
+            return r2.json();
+          })
+          .then(function(geo) {
+            if (geo.city) {
+              locLabel = geo.city + ', ' + (geo.stateAbbr || abbr);
+              stateAbbr = geo.stateAbbr || abbr;
+              stateFull = geo.stateFull || stateFull;
+            } else {
+              locLabel = zip + ', ' + abbr;
+            }
+            hideGPSMsg();
+            loadAllData();
+          })
+          .catch(function() {
+            // Fall back to BigDataCloud city name
+            var city = data.city || data.locality || data.principalSubdivision || '';
+            locLabel = city ? (city + ', ' + abbr) : (zip || 'Your Location');
+            hideGPSMsg();
+            loadAllData();
+          });
+      } else {
+        var city = data.city || data.locality || data.principalSubdivision || '';
+        locLabel = city ? (city + ', ' + abbr) : 'Your Location';
+        hideGPSMsg();
+        loadAllData();
+      }
     })
     .catch(function() {
       currentAddress = lat.toFixed(4) + ',' + lng.toFixed(4);
@@ -2007,25 +2034,39 @@ function submitZip() {
   }
   currentAddress = z;
   showLoading();
-  // Use Zippopotam.us for state (reliable), then Civic API corrects the city name
-  fetch('https://api.zippopotam.us/us/' + z)
+  // Use our geocode endpoint (USPS city names) as primary, Zippopotam.us as fallback
+  fetch('/api/geocode?zip=' + z)
     .then(function(r) {
-      if (!r.ok) throw new Error('ZIP not found');
+      if (!r.ok) throw new Error('Geocode error');
       return r.json();
     })
     .then(function(data) {
-      var place = data.places[0];
-      stateAbbr = place['state abbreviation'];
-      stateFull = place['state'];
-      // Set temporary label — Civic API will correct the city name in loadAllData
-      locLabel  = place['place name'] + ', ' + stateAbbr;
+      if (data.error) throw new Error(data.error);
+      locLabel  = (data.city || 'ZIP ' + z) + (data.stateAbbr ? ', ' + data.stateAbbr : '');
+      stateAbbr = data.stateAbbr || '';
+      stateFull = data.stateFull || '';
       loadAllData();
     })
     .catch(function() {
-      locLabel  = 'ZIP ' + z;
-      stateAbbr = '';
-      stateFull = '';
-      loadAllData();
+      // Fallback to Zippopotam.us
+      fetch('https://api.zippopotam.us/us/' + z)
+        .then(function(r) {
+          if (!r.ok) throw new Error('ZIP not found');
+          return r.json();
+        })
+        .then(function(data) {
+          var place = data.places[0];
+          locLabel  = place['place name'] + ', ' + place['state abbreviation'];
+          stateAbbr = place['state abbreviation'];
+          stateFull = place['state'];
+          loadAllData();
+        })
+        .catch(function() {
+          locLabel  = 'ZIP ' + z;
+          stateAbbr = '';
+          stateFull = '';
+          loadAllData();
+        });
     });
 }
 
