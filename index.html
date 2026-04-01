@@ -2957,9 +2957,9 @@ function fetchLiveFeed() {
     var senateActions = (results[1].floorActions || []).map(function(a) { a._chamber = 'senate'; return a; });
     liveFeedData = houseActions.concat(senateActions);
 
-    // Sort by timestamp descending
+    // Sort by actionDate (when the legislative action actually happened), not updateDate
     liveFeedData.sort(function(a, b) {
-      return new Date(b.updateDate || b.actionDate || 0) - new Date(a.updateDate || a.actionDate || 0);
+      return new Date(b.actionDate || b.updateDate || 0) - new Date(a.actionDate || a.updateDate || 0);
     });
 
     liveFeedLoaded = true;
@@ -2991,7 +2991,7 @@ function fetchLiveFeedFallback() {
       });
     });
     liveFeedData.sort(function(a, b) {
-      return new Date(b.updateDate || b.actionDate || 0) - new Date(a.updateDate || a.actionDate || 0);
+      return new Date(b.actionDate || b.updateDate || 0) - new Date(a.actionDate || a.updateDate || 0);
     });
     liveFeedLoaded = true;
     renderLiveFeed();

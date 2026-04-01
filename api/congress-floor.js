@@ -86,8 +86,8 @@ export default async function handler(req, res) {
     return true;
   });
 
-  // Sort by date descending
-  allActions.sort((a, b) => new Date(b.updateDate || b.actionDate || 0) - new Date(a.updateDate || a.actionDate || 0));
+  // Sort by actionDate (actual legislative event), not updateDate (metadata refresh)
+  allActions.sort((a, b) => new Date(b.actionDate || b.updateDate || 0) - new Date(a.actionDate || a.updateDate || 0));
 
   res.status(200).json({ floorActions: allActions.slice(0, 50) });
 }
