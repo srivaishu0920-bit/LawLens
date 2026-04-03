@@ -499,6 +499,52 @@
   .live-empty-icon{font-size:2rem;margin-bottom:.5rem;}
   .live-empty-text{font-size:.82rem;}
 
+  /* Community */
+  .comm-new-btn{background:var(--gold);color:#1A1D2E;border:none;border-radius:10px;padding:.6rem 1.2rem;font-weight:600;font-size:.82rem;cursor:pointer;width:100%;}
+  .comm-new-btn:hover{opacity:.88;}
+  .comm-topic{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1rem;margin-bottom:.7rem;cursor:pointer;transition:border-color .2s;}
+  .comm-topic:hover{border-color:var(--gold);}
+  .comm-topic-title{font-weight:600;font-size:.92rem;margin-bottom:.3rem;}
+  .comm-topic-meta{font-size:.7rem;color:var(--muted);display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;}
+  .comm-topic-preview{font-size:.8rem;color:var(--muted);margin-top:.4rem;line-height:1.4;}
+  .comm-cat-pill{display:inline-block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:20px;background:rgba(232,184,75,.12);color:var(--gold);}
+  .comm-count{font-size:.7rem;color:var(--muted);}
+
+  .comm-thread-back{background:none;border:none;color:var(--gold);font-size:.82rem;font-weight:600;cursor:pointer;padding:.3rem 0;margin-bottom:.8rem;display:flex;align-items:center;gap:.3rem;}
+  .comm-thread-title{font-size:1.1rem;font-weight:700;margin-bottom:.2rem;}
+  .comm-thread-meta{font-size:.72rem;color:var(--muted);margin-bottom:1rem;}
+
+  .comm-msg{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:.8rem;margin-bottom:.5rem;}
+  .comm-msg-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;}
+  .comm-msg-avatar{width:28px;height:28px;border-radius:50%;background:var(--gold);color:#1A1D2E;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;}
+  .comm-msg-name{font-weight:600;font-size:.78rem;}
+  .comm-msg-time{font-size:.65rem;color:var(--muted);margin-left:auto;}
+  .comm-msg-text{font-size:.82rem;line-height:1.5;}
+
+  .comm-compose{margin-top:1rem;display:flex;flex-direction:column;gap:.5rem;}
+  .comm-compose textarea{width:100%;min-height:60px;border:1px solid var(--border);border-radius:10px;padding:.7rem;font-size:.82rem;font-family:inherit;background:var(--card);color:var(--text);resize:vertical;box-sizing:border-box;}
+  .comm-compose textarea:focus{border-color:var(--gold);outline:none;}
+  .comm-compose button{align-self:flex-end;background:var(--gold);color:#1A1D2E;border:none;border-radius:8px;padding:.5rem 1.2rem;font-weight:600;font-size:.8rem;cursor:pointer;}
+  .comm-compose button:hover{opacity:.88;}
+
+  .comm-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;}
+  .comm-modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;max-width:440px;width:100%;max-height:80vh;overflow-y:auto;}
+  .comm-modal h3{margin:0 0 1rem;font-size:1rem;}
+  .comm-modal input,.comm-modal textarea,.comm-modal select{width:100%;border:1px solid var(--border);border-radius:8px;padding:.6rem;font-size:.82rem;font-family:inherit;background:var(--card);color:var(--text);margin-bottom:.7rem;box-sizing:border-box;}
+  .comm-modal textarea{min-height:80px;resize:vertical;}
+  .comm-modal select{appearance:auto;}
+  .comm-modal input:focus,.comm-modal textarea:focus{border-color:var(--gold);outline:none;}
+  .comm-modal-btns{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem;}
+  .comm-modal-btns button{border:none;border-radius:8px;padding:.5rem 1rem;font-weight:600;font-size:.8rem;cursor:pointer;}
+  .comm-modal-btns .comm-cancel{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .comm-modal-btns .comm-submit{background:var(--gold);color:#1A1D2E;}
+
+  .comm-empty{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:.85rem;}
+
+  body.dark .comm-topic{background:#1A1D2E;border-color:#2D3148;}
+  body.dark .comm-msg{background:#1A1D2E;border-color:#2D3148;border-left-color:var(--gold);}
+  body.dark .comm-modal{background:#1E2235;border-color:#2D3148;}
+
   /* BILL CARD ACTIONS */
   .bill-actions { display:flex; align-items:center; gap:5px; }
   .bact-btn {
@@ -933,6 +979,7 @@
     <button class="tab-btn" onclick="switchTab('contact',this)"><span class="ti">📞</span>Contact</button>
     <button class="tab-btn" onclick="switchTab('bookmarks',this)"><span class="ti">🔖</span>Saved</button>
     <button class="tab-btn" onclick="switchTab('livefeed',this)"><span class="ti">🔴</span>Live</button>
+    <button class="tab-btn" onclick="switchTab('community',this)"><span class="ti">💬</span>Community</button>
     <button class="tab-btn" onclick="switchTab('about',this)"><span class="ti">ℹ️</span>About</button>
   </div>
   <div class="content">
@@ -1069,6 +1116,32 @@
         <span>Data from Congress.gov · Updates every 2 min</span>
         <button class="live-refresh-btn" onclick="fetchLiveFeed()" title="Refresh now">↻ Refresh</button>
       </div>
+    </div>
+
+    <!-- COMMUNITY -->
+    <div id="tab-community" class="tab-panel">
+      <div class="sec-title">Community Discussion</div>
+      <div class="sec-sub">Discuss bills, share ideas, and organize with fellow citizens.</div>
+
+      <div id="commAuthGate" style="display:none;text-align:center;padding:1.5rem;color:var(--muted);font-size:.85rem;">
+        🔒 Sign in to participate in community discussions.
+      </div>
+
+      <div id="commControls">
+        <div style="display:flex;align-items:center;gap:.5rem;margin:1rem 0;flex-wrap:wrap;">
+          <button class="sfpill active" id="commAll" onclick="filterCommunity('all')">All</button>
+          <button class="sfpill" id="commEdu" onclick="filterCommunity('edu')">Education</button>
+          <button class="sfpill" id="commHealth" onclick="filterCommunity('health')">Health</button>
+          <button class="sfpill" id="commTax" onclick="filterCommunity('tax')">Tax / Budget</button>
+          <button class="sfpill" id="commEnv" onclick="filterCommunity('env')">Environment</button>
+          <button class="sfpill" id="commHse" onclick="filterCommunity('hse')">Housing</button>
+          <button class="sfpill" id="commOther" onclick="filterCommunity('other')">Other</button>
+        </div>
+        <button class="comm-new-btn" onclick="showCreateTopic()">+ New Topic</button>
+      </div>
+
+      <div id="communityTopics"></div>
+      <div id="communityThread" style="display:none;"></div>
     </div>
 
     <div id="tab-about" class="tab-panel">
@@ -2405,15 +2478,17 @@ function loadRepsFromStateDB() {
 
   if (entry) {
     // Governor
+    var govContact = (entry.gov.web || '').replace(/\/+$/, '') + '/contact';
     stateOfficials.push({
       name: entry.gov.name, title: 'Governor of ' + sf, desc: entry.gov.desc,
-      party: entry.gov.party, phone: '', email: '', web: entry.gov.web, map: entry.gov.map
+      party: entry.gov.party, phone: '', email: '', web: entry.gov.web, map: entry.gov.map, contact: govContact
     });
     // US Senators go to federal
     entry.sen.forEach(function(s) {
+      var senContact = (s.web || '').replace(/\/+$/, '') + '/contact';
       fedOfficials.push({
         name: s.name, title: 'U.S. Senator — ' + sf, desc: s.desc,
-        party: s.party, phone: '', email: '', web: s.web, map: s.map
+        party: s.party, phone: '', email: '', web: s.web, map: s.map, contact: senContact
       });
     });
   }
@@ -2424,7 +2499,8 @@ function loadRepsFromStateDB() {
       stateOfficials.push({
         name: extra.ltgov.name, title: 'Lieutenant Governor of ' + sf,
         desc: 'Lt. Governor of ' + sf + (extra.ltgov.party ? '. ' + extra.ltgov.party + ' Party.' : ''),
-        party: extra.ltgov.party, phone: '', email: '', web: extra.ltgov.web, map: ''
+        party: extra.ltgov.party, phone: '', email: '', web: extra.ltgov.web, map: '',
+        contact: (extra.ltgov.web || '').replace(/\/+$/, '') + '/contact'
       });
     }
     // Attorney General
@@ -2432,7 +2508,8 @@ function loadRepsFromStateDB() {
       stateOfficials.push({
         name: extra.ag.name, title: 'Attorney General of ' + sf,
         desc: 'Chief law enforcement officer of ' + sf + (extra.ag.party ? '. ' + extra.ag.party + ' Party.' : ''),
-        party: extra.ag.party, phone: '', email: '', web: extra.ag.web, map: ''
+        party: extra.ag.party, phone: '', email: '', web: extra.ag.web, map: '',
+        contact: (extra.ag.web || '').replace(/\/+$/, '') + '/contact'
       });
     }
     // Secretary of State
@@ -2440,7 +2517,8 @@ function loadRepsFromStateDB() {
       stateOfficials.push({
         name: extra.sos.name, title: 'Secretary of State — ' + sf,
         desc: 'Oversees elections, business filings, and official state records' + (extra.sos.party ? '. ' + extra.sos.party + ' Party.' : ''),
-        party: extra.sos.party, phone: '', email: '', web: extra.sos.web, map: ''
+        party: extra.sos.party, phone: '', email: '', web: extra.sos.web, map: '',
+        contact: (extra.sos.web || '').replace(/\/+$/, '') + '/contact'
       });
     }
     // State Legislature
@@ -2739,6 +2817,7 @@ function renderReps() {
     var party = o.party ? ' &middot; ' + esc(o.party) : '';
     var phone = o.phone ? '<a class="cbtn" href="tel:' + o.phone.replace(/\D/g,'') + '"><span class="ci">📞</span><span class="cl">Call</span></a>' : '';
     var email = o.email ? '<a class="cbtn" href="mailto:' + o.email + '"><span class="ci">✉️</span><span class="cl">Email</span></a>' : '';
+    var contactBtn = o.contact ? '<a class="cbtn" href="' + o.contact + '" target="_blank"><span class="ci">📝</span><span class="cl">Contact Form</span></a>' : '';
     var mapBtn = o.map  ? '<a class="cbtn" href="' + o.map + '" target="_blank"><span class="ci">🗺️</span><span class="cl">Office Map</span></a>' : '';
     var desc  = o.desc  ? '<div class="rep-desc">' + esc(o.desc) + '</div>' : '';
     var isFed = curRepView === 'federal';
@@ -2753,7 +2832,7 @@ function renderReps() {
       '<div><div class="rname">' + esc(o.name) + '</div><div class="rtitle">' + esc(o.title) + party + '</div></div></div>' +
       desc +
       '<div class="cgrid">' +
-        phone + email +
+        contactBtn + phone + email +
         '<a class="cbtn" href="' + web + '" target="_blank"><span class="ci">🌐</span><span class="cl">Website</span></a>' +
         mapBtn +
       '</div>' +
@@ -3186,6 +3265,257 @@ function filterLiveFeed(filter) {
 }
 
 // ═══════════════════════════════════════════════════
+//  COMMUNITY DISCUSSION
+// ═══════════════════════════════════════════════════
+var commFilter = 'all';
+var commCurrentTopic = null;
+var commUnsubscribe = null;
+
+var COMM_CATS = {
+  edu:   'Education',
+  health:'Health',
+  tax:   'Tax / Budget',
+  env:   'Environment',
+  hse:   'Housing',
+  other: 'Other'
+};
+
+function renderCommunity() {
+  var gate = document.getElementById('commAuthGate');
+  var controls = document.getElementById('commControls');
+  var topics = document.getElementById('communityTopics');
+  var thread = document.getElementById('communityThread');
+
+  // Show topic list, hide thread
+  topics.style.display = '';
+  thread.style.display = 'none';
+  commCurrentTopic = null;
+  if (commUnsubscribe) { commUnsubscribe(); commUnsubscribe = null; }
+
+  if (!db) {
+    topics.innerHTML = '<div class="comm-empty">Community features require Firebase. Please try again later.</div>';
+    return;
+  }
+
+  // Show auth gate for guests
+  if (isGuest || !currentUser) {
+    gate.style.display = '';
+    controls.querySelector('.comm-new-btn').style.display = 'none';
+  } else {
+    gate.style.display = 'none';
+    controls.querySelector('.comm-new-btn').style.display = '';
+  }
+
+  topics.innerHTML = '<div class="comm-empty">Loading discussions...</div>';
+
+  var query = db.collection('community_topics').orderBy('lastActivity', 'desc').limit(30);
+  if (commFilter !== 'all') {
+    query = db.collection('community_topics').where('category', '==', commFilter).orderBy('lastActivity', 'desc').limit(30);
+  }
+
+  query.get().then(function(snap) {
+    if (snap.empty) {
+      topics.innerHTML = '<div class="comm-empty">No discussions yet. Be the first to start one!</div>';
+      return;
+    }
+    var html = '';
+    snap.forEach(function(doc) {
+      var t = doc.data();
+      var catLabel = COMM_CATS[t.category] || 'Other';
+      var ago = t.lastActivity ? commTimeAgo(t.lastActivity.toDate()) : '';
+      var preview = t.firstMessage ? esc(t.firstMessage).slice(0, 120) + (t.firstMessage.length > 120 ? '...' : '') : '';
+      html += '<div class="comm-topic" onclick="openTopic(\'' + doc.id + '\')">' +
+        '<div class="comm-topic-title">' + esc(t.title) + '</div>' +
+        '<div class="comm-topic-meta">' +
+          '<span class="comm-cat-pill">' + catLabel + '</span>' +
+          '<span>' + esc(t.authorName || 'Anonymous') + '</span>' +
+          '<span>' + ago + '</span>' +
+          '<span class="comm-count">💬 ' + (t.messageCount || 0) + '</span>' +
+        '</div>' +
+        (preview ? '<div class="comm-topic-preview">' + preview + '</div>' : '') +
+      '</div>';
+    });
+    topics.innerHTML = html;
+  }).catch(function(e) {
+    console.warn('Community load error:', e);
+    topics.innerHTML = '<div class="comm-empty">Unable to load discussions. Firestore may need a composite index — check the browser console for a link.</div>';
+  });
+}
+
+function filterCommunity(cat) {
+  commFilter = cat;
+  document.querySelectorAll('#commControls .sfpill').forEach(function(b) { b.classList.remove('active'); });
+  var id = 'comm' + cat.charAt(0).toUpperCase() + cat.slice(1);
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  renderCommunity();
+}
+
+function openTopic(topicId) {
+  if (!db) return;
+  var topics = document.getElementById('communityTopics');
+  var thread = document.getElementById('communityThread');
+  topics.style.display = 'none';
+  thread.style.display = '';
+  commCurrentTopic = topicId;
+
+  thread.innerHTML = '<div class="comm-empty">Loading thread...</div>';
+
+  db.collection('community_topics').doc(topicId).get().then(function(doc) {
+    if (!doc.exists) { thread.innerHTML = '<div class="comm-empty">Topic not found.</div>'; return; }
+    var t = doc.data();
+    var catLabel = COMM_CATS[t.category] || 'Other';
+    var ago = t.createdAt ? commTimeAgo(t.createdAt.toDate()) : '';
+
+    var headerHtml = '<button class="comm-thread-back" onclick="renderCommunity()">← Back to discussions</button>' +
+      '<div class="comm-thread-title">' + esc(t.title) + '</div>' +
+      '<div class="comm-thread-meta">' +
+        '<span class="comm-cat-pill">' + catLabel + '</span> ' +
+        esc(t.authorName || 'Anonymous') + ' · ' + ago +
+      '</div>' +
+      '<div id="commMessages"></div>';
+
+    if (currentUser && !isGuest) {
+      headerHtml += '<div class="comm-compose">' +
+        '<textarea id="commReplyText" placeholder="Share your thoughts..."></textarea>' +
+        '<button onclick="postMessage(\'' + topicId + '\')">Post Reply</button>' +
+      '</div>';
+    }
+
+    thread.innerHTML = headerHtml;
+
+    // Real-time messages
+    if (commUnsubscribe) commUnsubscribe();
+    commUnsubscribe = db.collection('community_topics').doc(topicId).collection('messages')
+      .orderBy('createdAt', 'asc')
+      .onSnapshot(function(snap) {
+        var msgHtml = '';
+        snap.forEach(function(mDoc) {
+          var m = mDoc.data();
+          var mAgo = m.createdAt ? commTimeAgo(m.createdAt.toDate()) : '';
+          msgHtml += '<div class="comm-msg">' +
+            '<div class="comm-msg-header">' +
+              '<div class="comm-msg-avatar">' + initials(m.authorName || '?') + '</div>' +
+              '<div class="comm-msg-name">' + esc(m.authorName || 'Anonymous') + '</div>' +
+              '<div class="comm-msg-time">' + mAgo + '</div>' +
+            '</div>' +
+            '<div class="comm-msg-text">' + esc(m.text || '').replace(/\n/g, '<br>') + '</div>' +
+          '</div>';
+        });
+        if (!msgHtml) msgHtml = '<div class="comm-empty">No replies yet. Start the conversation!</div>';
+        var el = document.getElementById('commMessages');
+        if (el) el.innerHTML = msgHtml;
+      });
+  });
+}
+
+function showCreateTopic() {
+  if (!currentUser || isGuest) {
+    showToast('🔒 Sign in to start a discussion');
+    return;
+  }
+  var overlay = document.createElement('div');
+  overlay.className = 'comm-modal-overlay';
+  overlay.id = 'commModalOverlay';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  overlay.innerHTML = '<div class="comm-modal">' +
+    '<h3>Start a Discussion</h3>' +
+    '<input id="commTopicTitle" type="text" placeholder="Topic title..." maxlength="120"/>' +
+    '<select id="commTopicCat">' +
+      '<option value="other">Other</option>' +
+      '<option value="edu">Education</option>' +
+      '<option value="health">Health</option>' +
+      '<option value="tax">Tax / Budget</option>' +
+      '<option value="env">Environment</option>' +
+      '<option value="hse">Housing</option>' +
+    '</select>' +
+    '<textarea id="commTopicMsg" placeholder="What do you want to discuss?"></textarea>' +
+    '<div class="comm-modal-btns">' +
+      '<button class="comm-cancel" onclick="document.getElementById(\'commModalOverlay\').remove()">Cancel</button>' +
+      '<button class="comm-submit" onclick="submitTopic()">Post</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+}
+
+function submitTopic() {
+  if (!db || !currentUser || isGuest) return;
+  var title = document.getElementById('commTopicTitle').value.trim();
+  var cat   = document.getElementById('commTopicCat').value;
+  var msg   = document.getElementById('commTopicMsg').value.trim();
+  if (!title) { showToast('Please enter a topic title.'); return; }
+  if (!msg)   { showToast('Please enter a message.'); return; }
+
+  db.collection('community_topics').add({
+    title: title,
+    category: cat,
+    authorUid: currentUser.uid,
+    authorName: currentUser.displayName || 'User',
+    firstMessage: msg,
+    messageCount: 1,
+    state: stateAbbr || '',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    lastActivity: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(docRef) {
+    // Add the first message
+    return docRef.collection('messages').add({
+      text: msg,
+      authorUid: currentUser.uid,
+      authorName: currentUser.displayName || 'User',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).then(function() {
+    document.getElementById('commModalOverlay').remove();
+    showToast('Discussion started!');
+    renderCommunity();
+  }).catch(function(e) {
+    console.warn('Create topic error:', e);
+    showToast('Failed to create topic. Try again.');
+  });
+}
+
+function postMessage(topicId) {
+  if (!db || !currentUser || isGuest) {
+    showToast('🔒 Sign in to reply');
+    return;
+  }
+  var text = document.getElementById('commReplyText').value.trim();
+  if (!text) return;
+
+  document.getElementById('commReplyText').value = '';
+
+  db.collection('community_topics').doc(topicId).collection('messages').add({
+    text: text,
+    authorUid: currentUser.uid,
+    authorName: currentUser.displayName || 'User',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    // Update topic metadata
+    db.collection('community_topics').doc(topicId).update({
+      messageCount: firebase.firestore.FieldValue.increment(1),
+      lastActivity: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).catch(function(e) {
+    console.warn('Post message error:', e);
+    showToast('Failed to post reply. Try again.');
+  });
+}
+
+function commTimeAgo(date) {
+  if (!date) return '';
+  var diff = Date.now() - date.getTime();
+  var mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  var days = Math.floor(hrs / 24);
+  if (days === 1) return 'yesterday';
+  if (days < 7) return days + 'd ago';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ═══════════════════════════════════════════════════
 //  TABS
 // ═══════════════════════════════════════════════════
 function switchTab(id, btn) {
@@ -3194,6 +3524,7 @@ function switchTab(id, btn) {
   btn.classList.add('active');
   document.getElementById('tab-' + id).classList.add('active');
   if (id === 'bookmarks') { renderBookmarks(); }
+  if (id === 'community') { renderCommunity(); }
   if (id === 'livefeed' && !liveFeedLoaded) {
     fetchLiveFeed();
     if (!liveFeedInterval) {
