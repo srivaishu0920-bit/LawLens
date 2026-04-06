@@ -356,6 +356,7 @@
 
   .binfo{flex:1;min-width:0;}
   .bid{font-size:.68rem;color:var(--muted);margin-bottom:3px;font-weight:500;}
+  .bsource{font-size:.65rem;color:#B8860B;text-decoration:none;font-weight:600;margin-left:6px;}.bsource:hover{text-decoration:underline;color:#8B6914;}
   .btitle{font-size:.91rem;font-weight:600;color:var(--navy);line-height:1.4;margin-bottom:4px;}
   .bdesc{font-size:.78rem;color:var(--muted);line-height:1.5;}
   .bill-foot{border-top:1px solid var(--border);padding:.65rem 1.05rem;display:flex;align-items:center;justify-content:space-between;background:#FAFAFA;}
@@ -2549,13 +2550,8 @@ function loadRepsFromStateDB() {
 }
 
 function loadDemoStateBills() {
-  stateBills = [
-    { id:'SB 452', title:'School Funding Equity Act', desc:'Allocates additional funds to Title I schools and under-resourced districts to close achievement gaps and increase per-pupil spending.', cat:'edu', status:'In Committee', source:'state', url:'' },
-    { id:'HB 731', title:'Community Health Clinic Expansion', desc:'Expands Medicaid-eligible community health clinics in rural and suburban areas to improve access to preventive care.', cat:'health', status:'Floor Vote Pending', source:'state', url:'' },
-    { id:'HB 904', title:'Clean Air Standards Modernization', desc:'Updates state air quality regulations to align with new EPA standards and reduce industrial particulate emissions by 30%.', cat:'env', status:'Passed Chamber', source:'state', url:'' },
-    { id:'SB 218', title:'Middle-Class Property Tax Relief', desc:'Reduces property taxes up to 18% for primary-residence homeowners earning under $90,000 per year.', cat:'tax', status:'Active', source:'state', url:'' },
-    { id:'SB 601', title:'Affordable Housing Zoning Reform', desc:'Allows higher-density housing near transit corridors and removes single-family-only zoning restrictions statewide.', cat:'other', status:'In Committee', source:'state', url:'' }
-  ];
+  // No fake bills — show empty state instead of fabricated data
+  stateBills = [];
 }
 
 function loadDemoFedBills() {
@@ -2708,7 +2704,12 @@ function renderBillsOnly() {
 
   var el = document.getElementById('billList');
   if (!filtered.length) {
-    el.innerHTML = '<div class="empty"><div class="ei">📭</div><p>No bills match your search or filters. Try adjusting them.</p></div>';
+    var msg = bills.length === 0
+      ? (curSource === 'state'
+        ? 'No state bills found for your location. State bill data comes from OpenStates — check back later or try a different ZIP code.'
+        : 'No federal bills loaded yet. Please wait a moment and try again.')
+      : 'No bills match your search or filters. Try adjusting them.';
+    el.innerHTML = '<div class="empty"><div class="ei">📭</div><p>' + msg + '</p></div>';
     return;
   }
   el.innerHTML = filtered.map(function(b) {
@@ -2723,11 +2724,12 @@ function renderBillsOnly() {
     var safeId    = esc(b.id);
     var safeTitle = esc(b.title);
     var safeDesc  = esc(desc).replace(/'/g, '&#39;');
+    var sourceLink = b.url ? '<a href="' + esc(b.url) + '" target="_blank" class="bsource" title="View official source">🔗 Source</a>' : '';
     return '<div class="bill-card">' +
       '<div class="bill-top">' +
         '<span class="bbadge ' + m.cls + '">' + m.label + '</span>' +
         '<div class="binfo">' +
-          '<div class="bid">' + safeId + ' ' + src + '</div>' +
+          '<div class="bid">' + safeId + ' ' + src + ' ' + sourceLink + '</div>' +
           '<div class="btitle">' + safeTitle + '</div>' +
           '<div class="bdesc">' + esc(desc) + '</div>' +
         '</div>' +
@@ -3051,7 +3053,7 @@ function buildLocalSummary(id, title, desc, source) {
     '\n\nSupporters say:\nProponents argue this bill addresses an important public need and would benefit constituents.' +
     '\n\nCritics say:\nOpponents may raise concerns about cost, implementation, or unintended consequences.' +
     '\n\nCurrent status:\n' + id + ' — ' + source.charAt(0).toUpperCase() + source.slice(1) + ' level legislation. Check congress.gov or your state legislature website for the latest status.' +
-    '\n\n\u2139\ufe0f AI summary is temporarily unavailable. Please try again later.';
+    '\n\nℹ️ This is a basic summary generated from bill metadata. Tap "AI Summary" again for a more detailed analysis.';
 }
 
 function showAIResult(text) {
@@ -3798,7 +3800,7 @@ function renderBookmarks() {
       '<div class="bill-top">' +
         '<span class="bbadge ' + m.cls + '">' + m.label + '</span>' +
         '<div class="binfo">' +
-          '<div class="bid">' + safeId + ' ' + src + '</div>' +
+          '<div class="bid">' + safeId + ' ' + src + ' ' + (b.url ? '<a href="' + esc(b.url) + '" target="_blank" class="bsource" title="View official source">🔗 Source</a>' : '') + '</div>' +
           '<div class="btitle">' + safeTitle + '</div>' +
           '<div class="bdesc">' + esc(desc) + '</div>' +
         '</div>' +
