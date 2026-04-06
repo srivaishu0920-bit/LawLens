@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&sort=updated_desc&per_page=30`;
+    const url = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&sort=updated_desc&per_page=20`;
     const resp = await fetch(url, {
       headers: { 'X-API-KEY': apiKey }
     });
