@@ -1629,6 +1629,13 @@ function goToWelcome() {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   // Show welcome
   document.getElementById('welcome').classList.add('active');
+  // Pre-fill saved ZIP code if available
+  try {
+    var savedZip = localStorage.getItem('lawlens_zip');
+    if (savedZip && /^\d{5}$/.test(savedZip)) {
+      document.getElementById('zipInput').value = savedZip;
+    }
+  } catch(e) {}
 }
 
 function signOutUser() {
@@ -2070,6 +2077,10 @@ function reverseGeocode(lat, lng) {
       stateAbbr = abbr;
       stateFull = data.principalSubdivision || abbr;
 
+      // Save ZIP from GPS so user doesn't have to re-enter next visit
+      if (zip && /^\d{5}$/.test(zip)) {
+        try { localStorage.setItem('lawlens_zip', zip); } catch(e) {}
+      }
       // If we got a ZIP, look up the accurate USPS city name
       if (zip && /^\d{5}$/.test(zip)) {
         fetch('/api/geocode?zip=' + zip)
@@ -2120,6 +2131,8 @@ function submitZip() {
     return;
   }
   currentAddress = z;
+  // Save ZIP so user doesn't have to re-enter next visit
+  try { localStorage.setItem('lawlens_zip', z); } catch(e) {}
   showLoading();
   // Use our geocode endpoint (USPS city names) as primary, Zippopotam.us as fallback
   fetch('/api/geocode?zip=' + z)
@@ -3023,11 +3036,41 @@ function renderVoteCalendar(votes) {
 // ═══════════════════════════════════════════════════
 //  AI SUMMARY
 // ═══════════════════════════════════════════════════
+// AI summary cache — avoids re-calling API for bills already summarized
+var aiCache = {};
+try {
+  var stored = localStorage.getItem('lawlens_ai_cache');
+  if (stored) {
+    var parsed = JSON.parse(stored);
+    // Only use cache if it's less than 24 hours old
+    if (parsed._ts && (Date.now() - parsed._ts) < 86400000) {
+      aiCache = parsed;
+    }
+  }
+} catch(e) {}
+
+function saveAICache() {
+  try {
+    aiCache._ts = Date.now();
+    localStorage.setItem('lawlens_ai_cache', JSON.stringify(aiCache));
+  } catch(e) {}
+}
+
 function openAI(id, title, desc, source) {
   document.getElementById('mTitle').textContent    = title;
+  document.getElementById('aiModal').classList.add('open');
+
+  // Check cache first — don't waste an API call
+  var cacheKey = id + '|' + source;
+  if (aiCache[cacheKey]) {
+    document.getElementById('aiThink').style.display = 'none';
+    document.getElementById('aiRes').style.display   = 'block';
+    showAIResult(aiCache[cacheKey]);
+    return;
+  }
+
   document.getElementById('aiThink').style.display = 'flex';
   document.getElementById('aiRes').style.display   = 'none';
-  document.getElementById('aiModal').classList.add('open');
 
   // Call AI summary via server-side proxy
   fetch('/api/ai', {
@@ -3044,10 +3087,13 @@ function openAI(id, title, desc, source) {
     if (data.error) { throw new Error(data.error.message); }
     var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : null;
     if (!text) { throw new Error('No content'); }
+    // Cache the result
+    aiCache[cacheKey] = text;
+    saveAICache();
     showAIResult(text);
   })
   .catch(function(err) {
-    // API unavailable from local file — generate a structured summary from bill data
+    // API unavailable — generate a structured summary from bill data
     console.log('AI API unavailable, using local summary. Error:', err.message);
     showAIResult(buildLocalSummary(id, title, desc, source));
   });
