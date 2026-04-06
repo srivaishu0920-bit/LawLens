@@ -2227,12 +2227,18 @@ function fetchStateBills() {
       var results = data.results || [];
       if (data.error) throw new Error(data.error);
       stateBills = results.map(function(b) {
+        // latest_action may be empty — fall back to last item in actions array
+        var lastAction = (b.latest_action && b.latest_action.description)
+          ? b.latest_action.description
+          : (b.actions && b.actions.length)
+            ? b.actions[b.actions.length - 1].description
+            : 'Active';
         return {
           id:     b.identifier,
           title:  b.title,
           desc:   (b.abstracts && b.abstracts[0]) ? b.abstracts[0].abstract : b.title,
           cat:    categorizeBill(b.subject || [], b.title),
-          status: (b.latest_action && b.latest_action.description) ? b.latest_action.description : 'Active',
+          status: lastAction,
           source: 'state',
           url:    b.openstates_url || ''
         };

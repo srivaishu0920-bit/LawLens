@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   if (chamber === 'house' || chamber === 'all') {
     fetches.push(
-      fetch(`https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=50&format=json&api_key=${process.env.CONGRESS_API_KEY}`)
+      fetch(`https://api.congress.gov/v3/bill/119?sort=updateDate+desc&limit=50&format=json&api_key=${process.env.CONGRESS_API_KEY}`)
         .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(data => {
           (data.bills || []).forEach(b => {
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   // If filtering by senate, also make a senate-specific call
   if (chamber === 'senate') {
     fetches.push(
-      fetch(`https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=50&format=json&api_key=${process.env.CONGRESS_API_KEY}`)
+      fetch(`https://api.congress.gov/v3/bill/119?sort=updateDate+desc&limit=50&format=json&api_key=${process.env.CONGRESS_API_KEY}`)
         .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(data => {
           (data.bills || []).forEach(b => {
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
   // Also try to fetch amendment activity for extra richness
   fetches.push(
-    fetch(`https://api.congress.gov/v3/amendment?sort=updateDate+desc&limit=20&format=json&api_key=${process.env.CONGRESS_API_KEY}`)
+    fetch(`https://api.congress.gov/v3/amendment/119?sort=updateDate+desc&limit=20&format=json&api_key=${process.env.CONGRESS_API_KEY}`)
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(data => {
         (data.amendments || []).forEach(a => {

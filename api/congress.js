@@ -5,7 +5,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = `https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=30&format=json&api_key=${apiKey}`;
+    // Only fetch bills from the current 119th Congress (2025-2026)
+    const url = `https://api.congress.gov/v3/bill/119?sort=updateDate+desc&limit=30&format=json&api_key=${apiKey}`;
     const resp = await fetch(url);
     if (!resp.ok) {
       const errBody = await resp.text();
