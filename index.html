@@ -335,9 +335,10 @@
   .stab.active,.stab:hover{background:var(--navy);color:var(--gold);border-color:var(--navy);}
 
   /* filter pills */
-  .filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;margin-bottom:1.1rem;}
+  .filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:1.1rem;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scrollbar-width:none;}
   .filter-row::-webkit-scrollbar{display:none;}
-  .fpill{white-space:nowrap;background:var(--card);border:1px solid var(--border);border-radius:100px;padding:4px 12px;font-size:.73rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+  .filter-row::after{content:'';flex-shrink:0;width:1px;}
+  .fpill{white-space:nowrap;background:var(--card);border:1px solid var(--border);border-radius:100px;padding:4px 12px;font-size:.73rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;flex-shrink:0;scroll-snap-align:start;}
   .fpill.active,.fpill:hover{background:var(--navy);color:var(--gold);border-color:var(--navy);}
 
   /* bill cards */
@@ -634,9 +635,10 @@
 
   /* STATUS FILTER */
   .status-filter {
-    display:flex; gap:6px; overflow-x:auto; padding-bottom:3px; margin-bottom:1rem;
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:1rem; -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
   .status-filter::-webkit-scrollbar { display:none; }
+  .status-filter::after { content:''; flex-shrink:0; width:1px; }
   .sfpill {
     white-space:nowrap; background:var(--card); border:1px solid var(--border);
     border-radius:100px; padding:3px 11px; font-size:.7rem; font-weight:600;
@@ -978,9 +980,9 @@
     <button class="tab-btn active" onclick="switchTab('bills',this)"><span class="ti">📋</span>Bills</button>
     <button class="tab-btn" onclick="switchTab('candidates',this)"><span class="ti">🗳️</span>Candidates</button>
     <button class="tab-btn" onclick="switchTab('contact',this)"><span class="ti">📞</span>Contact</button>
-    <button class="tab-btn" onclick="switchTab('bookmarks',this)"><span class="ti">🔖</span>Saved</button>
+    <button class="tab-btn" id="tabBookmarks" onclick="switchTab('bookmarks',this)"><span class="ti">🔖</span>Saved</button>
     <button class="tab-btn" onclick="switchTab('livefeed',this)"><span class="ti">🔴</span>Live</button>
-    <button class="tab-btn" onclick="switchTab('community',this)"><span class="ti">💬</span>Community</button>
+    <button class="tab-btn" id="tabCommunity" onclick="switchTab('community',this)"><span class="ti">💬</span>Community</button>
     <button class="tab-btn" onclick="switchTab('about',this)"><span class="ti">ℹ️</span>About</button>
   </div>
   <div class="content">
@@ -1013,9 +1015,9 @@
         <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;"></div>
         <div class="filter-row" id="filterRow" style="margin-bottom:0;flex:1;"></div>
         <button class="sfpill on" id="statusAll"   onclick="filterStatus('all',this)"      style="flex-shrink:0;">All</button>
-        <button class="sfpill"   id="statusActive" onclick="filterStatus('active',this)"   style="flex-shrink:0;">🟢</button>
-        <button class="sfpill"   id="statusCommit" onclick="filterStatus('committee',this)" style="flex-shrink:0;">🟡</button>
-        <button class="sfpill"   id="statusPassed" onclick="filterStatus('passed',this)"   style="flex-shrink:0;">🔵</button>
+        <button class="sfpill"   id="statusActive" onclick="filterStatus('active',this)"   style="flex-shrink:0;">🟢 Active</button>
+        <button class="sfpill"   id="statusCommit" onclick="filterStatus('committee',this)" style="flex-shrink:0;">🟡 In Committee</button>
+        <button class="sfpill"   id="statusPassed" onclick="filterStatus('passed',this)"   style="flex-shrink:0;">🔵 Passed / Signed</button>
       </div>
 
       <!-- TRENDING — tucked in, not overwhelming -->
@@ -1278,12 +1280,12 @@
           <p>Official U.S. Congress API providing federal bill data, voting records, and legislative status. Maintained by the Library of Congress.</p>
         </div>
         <div class="privacy-section">
-          <h4>Google Civic Information API</h4>
-          <p>Provides representative lookup by address. Fully functional when LawLens is hosted on a domain.</p>
+          <h4>USPS ZIP Code Database (via OpenDataSoft)</h4>
+          <p>Provides accurate city, county, and state lookup by ZIP code using official USPS designations.</p>
         </div>
         <div class="privacy-section">
           <h4>WhoIsMyRepresentative.com</h4>
-          <p>Free ZIP-code-based House representative lookup used as a local-file fallback.</p>
+          <p>ZIP-code-based House representative lookup for identifying your U.S. Congressional representative.</p>
         </div>
       </div>
 
@@ -1302,6 +1304,10 @@
         <div class="privacy-section">
           <h4>How We Use Your Information</h4>
           <p>Your location is used only to fetch relevant bills and representatives — it is never stored on our servers. Your email is used to send a welcome confirmation and, if you opt in via bookmarks, bill status change notifications. We do not use your data for advertising.</p>
+        </div>
+        <div class="privacy-section">
+          <h4>Bill Impact Tool — Demographic Data</h4>
+          <p>The "Impact Score" feature asks optional demographic questions (age group, employment status, income range, whether you have children, and homeowner status). This information is <strong>processed entirely in your browser</strong> — it is never sent to any server, never stored in any database, and never shared with anyone. It is used only in real time to estimate how a bill may affect you, then discarded when you close the page.</p>
         </div>
         <div class="privacy-section">
           <h4>Data Storage</h4>
@@ -1435,6 +1441,7 @@
       </div>
     </div>
     <button class="analyze-btn" onclick="runImpactAnalysis()">⚡ Analyze My Impact</button>
+    <p style="font-size:.65rem;color:var(--muted);margin-top:.6rem;line-height:1.5;text-align:center;">🔒 Your demographic info is processed locally in your browser and is <strong>never stored, sent to any server, or shared</strong>. It is only used to estimate bill relevance on this page.</p>
     <div class="impact-result" id="impactResult" style="display:none;"></div>
   </div>
 </div>
@@ -1663,6 +1670,12 @@ function updateNavUser(user) {
   var signedIn = !isGuest && user.email;
   document.getElementById('notifBell').style.display = signedIn ? '' : 'none';
   document.getElementById('menuNotifItem').style.display = signedIn ? '' : 'none';
+
+  // Hide account-only tabs for guests
+  var tabBookmarks = document.getElementById('tabBookmarks');
+  var tabCommunity = document.getElementById('tabCommunity');
+  if (tabBookmarks) tabBookmarks.style.display = signedIn ? '' : 'none';
+  if (tabCommunity) tabCommunity.style.display = signedIn ? '' : 'none';
 
   // Load registration count
   loadRegCount();
@@ -2281,20 +2294,9 @@ function fetchFederalBills() {
     });
 }
 
-// Real current federal bills (119th Congress, 2025-2026)
+// No hardcoded fallback bills — only show real data from Congress.gov API
 function loadRealFedBills() {
-  fedBills = [
-    { id:'HR 1', title:'One Big Beautiful Bill Act', desc:'Reconciliation bill extending 2017 tax cuts, increasing the debt ceiling, and funding border security and defense. Passed the House in May 2025.', cat:'tax', status:'Passed House — Pending Senate', source:'federal', url:'https://www.congress.gov/bill/119th-congress/house-bill/1' },
-    { id:'S 150', title:'Laken Riley Act', desc:'Requires federal immigration authorities to detain undocumented immigrants charged with theft or violent crimes. Signed into law January 2025.', cat:'other', status:'Signed into Law', source:'federal', url:'https://www.congress.gov/bill/119th-congress/senate-bill/150' },
-    { id:'HR 390', title:'No Tax on Tips Act', desc:'Exempts cash tips from federal income tax for workers in industries where tipping is customary, such as food service and hospitality.', cat:'tax', status:'Passed House', source:'federal', url:'https://www.congress.gov/bill/119th-congress/house-bill/390' },
-    { id:'HR 22', title:'Fix the Tax Cuts and Jobs Act', desc:'Makes permanent the individual income tax cuts from the 2017 Tax Cuts and Jobs Act, which are set to expire at the end of 2025.', cat:'tax', status:'In Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/house-bill/22' },
-    { id:'S 932', title:'Rural Health Care Access Act', desc:'Provides grants and Medicare payment increases to rural hospitals at risk of closure to improve healthcare access in underserved communities.', cat:'health', status:'In Senate Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/senate-bill/932' },
-    { id:'HR 2882', title:'FAFSA Simplification Implementation Act', desc:'Streamlines the federal student aid application process and expands Pell Grant eligibility for low- and middle-income students.', cat:'edu', status:'In Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/house-bill/2882' },
-    { id:'S 612', title:'Clean Energy Tax Credit Expansion Act', desc:'Extends and expands production tax credits for wind, solar, and battery storage projects to accelerate the transition to clean energy.', cat:'env', status:'In Senate Finance Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/senate-bill/612' },
-    { id:'HR 1503', title:'Affordable Homes Act', desc:'Provides $25B in grants to states and localities to build and preserve affordable housing near transit and jobs, and removes barriers to new construction.', cat:'hse', status:'Referred to Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/house-bill/1503' },
-    { id:'S 411', title:'American Broadband Expansion Act', desc:'Allocates $10B to extend high-speed broadband access to rural and underserved communities that lack reliable internet connectivity.', cat:'other', status:'In Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/senate-bill/411' },
-    { id:'HR 3101', title:'Prescription Drug Price Transparency Act', desc:'Requires pharmaceutical companies to publicly justify price increases above inflation and caps Medicare drug price negotiations.', cat:'health', status:'In Committee', source:'federal', url:'https://www.congress.gov/bill/119th-congress/house-bill/3101' }
-  ];
+  fedBills = [];
 }
 
 // ═══════════════════════════════════════════════════
