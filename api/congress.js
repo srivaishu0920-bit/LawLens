@@ -1,13 +1,19 @@
 export default async function handler(req, res) {
+  const apiKey = process.env.CONGRESS_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Congress API key not configured', bills: [] });
+  }
+
   try {
-    const url = `https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=30&api_key=${process.env.CONGRESS_API_KEY}`;
+    const url = `https://api.congress.gov/v3/bill?sort=updateDate+desc&limit=30&format=json&api_key=${apiKey}`;
     const resp = await fetch(url);
     if (!resp.ok) {
-      return res.status(resp.status).json({ error: 'Congress.gov API returned ' + resp.status, bills: [] });
+      const errBody = await resp.text();
+      return res.status(resp.status).json({ error: 'Congress.gov API returned ' + resp.status + ': ' + errBody.slice(0, 200), bills: [] });
     }
     const data = await resp.json();
     res.status(200).json(data);
   } catch (e) {
-    res.status(500).json({ error: 'Failed to reach Congress.gov', bills: [] });
+    res.status(500).json({ error: 'Failed to reach Congress.gov: ' + e.message, bills: [] });
   }
 }
