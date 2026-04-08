@@ -8,20 +8,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch bills with recent legislative activity (not just filed)
-    // action_since filters to bills that have had actions in the last 60 days
-    // 180 days gives a good mix of actively moving bills
-    const sixtyDaysAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const url = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&action_since=${sixtyDaysAgo}&sort=latest_action_desc&per_page=20&include=actions`;
-    const resp = await fetch(url, {
-      headers: { 'X-API-KEY': apiKey }
-    });
-    if (!resp.ok) {
-      const errBody = await resp.text();
-      return res.status(resp.status).json({ error: 'OpenStates API returned ' + resp.status + ': ' + errBody.slice(0, 200), results: [] });
+    // First try: bills with recent activity (last 180 days) — these are actively moving
+    const recentDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const url1 = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&action_since=${recentDate}&sort=latest_action_desc&per_page=20&include=actions`;
+    const resp1 = await fetch(url1, { headers: { 'X-API-KEY': apiKey } });
+
+    if (resp1.ok) {
+      const data1 = await resp1.json();
+      if (data1.results && data1.results.length >= 5) {
+        return res.status(200).json(data1);
+      }
     }
-    const data = await resp.json();
-    res.status(200).json(data);
+
+    // Fallback: if not enough recent bills (session may have ended),
+    // fetch most recently updated bills without date filter
+    const url2 = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&sort=latest_action_desc&per_page=20&include=actions`;
+    const resp2 = await fetch(url2, { headers: { 'X-API-KEY': apiKey } });
+
+    if (!resp2.ok) {
+      const errBody = await resp2.text();
+      return res.status(resp2.status).json({ error: 'OpenStates API returned ' + resp2.status + ': ' + errBody.slice(0, 200), results: [] });
+    }
+
+    const data2 = await resp2.json();
+    res.status(200).json(data2);
   } catch (e) {
     res.status(500).json({ error: 'Failed to reach OpenStates: ' + e.message, results: [] });
   }
