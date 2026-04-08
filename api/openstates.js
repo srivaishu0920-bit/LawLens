@@ -8,8 +8,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // include=actions gives us latest action date/description for each bill
-    const url = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&sort=updated_desc&per_page=20&include=actions`;
+    // Fetch bills with recent legislative activity (not just filed)
+    // action_since filters to bills that have had actions in the last 60 days
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const url = `https://v3.openstates.org/bills?jurisdiction=${state.toLowerCase()}&action_since=${sixtyDaysAgo}&sort=latest_action_desc&per_page=20&include=actions`;
     const resp = await fetch(url, {
       headers: { 'X-API-KEY': apiKey }
     });

@@ -2240,11 +2240,12 @@ function fetchStateBills() {
       var results = data.results || [];
       if (data.error) throw new Error(data.error);
       stateBills = results.map(function(b) {
-        // latest_action may be empty — fall back to last item in actions array
+        // latest_action may be empty — fall back to FIRST item in actions array
+        // (OpenStates returns actions sorted newest-first, so [0] = most recent)
         var lastAction = (b.latest_action && b.latest_action.description)
           ? b.latest_action.description
           : (b.actions && b.actions.length)
-            ? b.actions[b.actions.length - 1].description
+            ? b.actions[0].description
             : 'Active';
         return {
           id:     b.identifier,
